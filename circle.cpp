@@ -12,10 +12,10 @@ constexpr float GRAVITY = 0.5f;
 struct Circle {
     float x, y;
     float radius;
-    float vy;
+    float vx, vy;
 
     Circle(float x, float y, float radius)
-    : x(x), y(y), radius(radius), vy(0.0f) {}
+    : x(x), y(y), radius(radius), vx(0.0f), vy(0.0f) {}
 };
 
 float randomize_num() 
@@ -67,14 +67,31 @@ int SDL_RenderFillCircle(SDL_Renderer * renderer, Circle circle)
     return status;
 }
 
-void fall_circle(Circle& c) 
+void update_circle(Circle& c) 
 {   
     c.vy += GRAVITY;
+    
+    c.x += c.vx;
     c.y += c.vy;
 
     if (c.y + c.radius > HEIGHT) {
         c.y = HEIGHT - c.radius;
         c.vy = -c.vy * randomize_num();        
+    }
+
+    if (c.y - c.radius < HEIGHT) {
+        c.y = c.radius;
+        c.vy = -c.vy;
+    }
+
+    if (c.x - c.radius < 0) {
+        c.x = c.radius;
+        c.vx = -c.vx;
+    }
+
+    if (c.x + c.radius > WIDTH) {
+        c.x = WIDTH - c.radius;
+        c.vx = -c.vx;
     }
 }
 
@@ -118,7 +135,7 @@ int main() {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
         for (auto& c : circles) {
-            fall_circle(c);
+            update_circle(c);
             SDL_RenderFillCircle(renderer, c);
         }
         SDL_RenderPresent(renderer);
